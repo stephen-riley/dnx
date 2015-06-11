@@ -8,7 +8,7 @@ namespace Microsoft.Framework.PackageManager
 {
     internal class SourceConsoleCommand
     {
-        public static void Register(CommandLineApplication cmdApp, ReportsFactory reportsFactory)//, IApplicationEnvironment applicationEnvironment)
+        public static void Register(CommandLineApplication cmdApp, ReportsFactory reportsFactory)
         {
             cmdApp.Command("source", c =>
             {

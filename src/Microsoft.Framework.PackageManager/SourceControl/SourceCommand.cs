@@ -16,7 +16,7 @@ namespace Microsoft.Framework.PackageManager.SourceControl
     {
         private const string SourcesFolderName = "sources";
 
-        private const string SourcesEnvironmentVariable = "DNX_SOURCES_DIR";
+        private const string SourcesEnvironmentVariable = "DNX_SOURCES";
 
         private readonly Reports _reports;
         private readonly string _packageId;
@@ -86,7 +86,7 @@ namespace Microsoft.Framework.PackageManager.SourceControl
             var provider = SourceControlProviderFactory.ResolveProvider(repoType, _reports);
             if (provider == null)
             {
-                _reports.WriteError($"Unknown repository type '{provider}'");
+                _reports.WriteError($"Unknown repository type '{repoType}'");
                 return false;
             }
 

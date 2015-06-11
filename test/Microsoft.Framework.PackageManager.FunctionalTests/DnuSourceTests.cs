@@ -18,7 +18,7 @@ namespace Microsoft.Framework.PackageManager.FunctionalTests
     public class DnuSourceTests
     {
         [Theory]
-        [MemberData("RuntimeComponents")]
+        [MemberData(nameof(RuntimeComponents))]
         public void GitBuildGeneratesSourceInformation(string flavor, string os, string architecture)
         {
             const string fakeRepoName = "https://example.com/example.git";

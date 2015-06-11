@@ -10,9 +10,9 @@ namespace Microsoft.Framework.PackageManager.SourceControl
 {
     internal class GitSourceControlProvider: SourceControlProvider
     {
-        private const string RepoApp = "git";
+        private const string RepositoryApp = "git";
         
-        private const string RepoUrlKey = "url";
+        private const string RepositoryUrlKey = "url";
         private const string CommitHashKey = "commit";
         private const string ProjectPathKey = "path";
 
@@ -29,7 +29,7 @@ namespace Microsoft.Framework.PackageManager.SourceControl
             {
                 if (!_isInstalled.HasValue)
                 {
-                    _isInstalled = ProcessUtilities.ExecutableExists(RepoApp);
+                    _isInstalled = ProcessUtilities.ExecutableExists(RepositoryApp);
                 }
 
                 return _isInstalled.Value;
@@ -38,19 +38,21 @@ namespace Microsoft.Framework.PackageManager.SourceControl
 
         public override void AddMissingSnapshotInformation(string folderName, IDictionary<string, string> snapshotInformation)
         {
-            if (!snapshotInformation.ContainsKey(RepoUrlKey) || string.IsNullOrEmpty(snapshotInformation[RepoUrlKey]))
+            if (!snapshotInformation.ContainsKey(RepositoryUrlKey) || string.IsNullOrEmpty(snapshotInformation[RepositoryUrlKey]))
             {
                 throw new ArgumentNullException("The repository URL must be specified.");
             }
 
             if (!snapshotInformation.ContainsKey(CommitHashKey))
             {
-                snapshotInformation[CommitHashKey] = GetHEADCommitId(folderName);
+                snapshotInformation[CommitHashKey] = GetHeadCommitId(folderName);
             }
 
             if (!snapshotInformation.ContainsKey(ProjectPathKey))
             {
                 var repoRoot = GetRepoRoot(folderName);
+
+                // Get the path relative to the repo root
                 var pathRelativeToRepoRoot = Path.GetDirectoryName(folderName)
                     .Substring(repoRoot.Length)
                     .Replace('\\', '/')
@@ -59,12 +61,12 @@ namespace Microsoft.Framework.PackageManager.SourceControl
             }
         }
 
-        private string GetHEADCommitId(string folderName)
+        private string GetHeadCommitId(string folderName)
         {
             string stdOut;
             string stdErr;
 
-            if (ProcessUtilities.RunApp(RepoApp, "rev-parse HEAD", folderName, out stdOut, out stdErr) &&
+            if (ProcessUtilities.RunApp(RepositoryApp, "rev-parse HEAD", folderName, out stdOut, out stdErr) &&
                 string.IsNullOrEmpty(stdErr))
             {
                 return stdOut;
@@ -78,7 +80,7 @@ namespace Microsoft.Framework.PackageManager.SourceControl
             string stdOut;
             string stdErr;
 
-            if (ProcessUtilities.RunApp(RepoApp, "rev-parse --show-toplevel", folderName, out stdOut, out stdErr) &&
+            if (ProcessUtilities.RunApp(RepositoryApp, "rev-parse --show-toplevel", folderName, out stdOut, out stdErr) &&
                 string.IsNullOrEmpty(stdErr))
             {
                 return stdOut;
@@ -89,7 +91,7 @@ namespace Microsoft.Framework.PackageManager.SourceControl
 
         public override string CreateShortFolderName(IDictionary<string, string> snapshotInfo)
         {
-            var repoUrl = snapshotInfo[RepoUrlKey];
+            var repoUrl = snapshotInfo[RepositoryUrlKey];
             var commitHash = snapshotInfo[CommitHashKey];
 
             string repoName = Path.GetFileNameWithoutExtension(repoUrl);
@@ -100,7 +102,7 @@ namespace Microsoft.Framework.PackageManager.SourceControl
 
         public override bool GetSources(string destinationFolder, IDictionary<string, string> snapshotInfo)
         {
-            var repoUrl = snapshotInfo[RepoUrlKey];
+            var repoUrl = snapshotInfo[RepositoryUrlKey];
             var commitHash = snapshotInfo[CommitHashKey];
 
             string stdOut;
@@ -110,7 +112,7 @@ namespace Microsoft.Framework.PackageManager.SourceControl
 
             // First clone
             if (!ProcessUtilities.RunApp(
-                RepoApp, 
+                RepositoryApp, 
                 $"clone {repoUrl} {destinationFolder}",
                 workingDirectory: null,
                 stdOut: out stdOut,
@@ -124,7 +126,7 @@ namespace Microsoft.Framework.PackageManager.SourceControl
 
             // Then sync to that particular commit
             if (!ProcessUtilities.RunApp(
-                RepoApp,
+                RepositoryApp,
                 $"reset --hard {commitHash}",
                 workingDirectory: destinationFolder,
                 stdOut: out stdOut,
@@ -134,7 +136,6 @@ namespace Microsoft.Framework.PackageManager.SourceControl
                 return false;
             }
 
-            _buildReports.WriteError(stdErr);
             return true;
         }
 
@@ -146,7 +147,7 @@ namespace Microsoft.Framework.PackageManager.SourceControl
         public override bool ValidateBuildSnapshotInformation(IDictionary<string, string> snapshotInfo, bool minimal)
         {
             bool noErrors = true;
-            if (!snapshotInfo.ContainsKey(RepoUrlKey))
+            if (!snapshotInfo.ContainsKey(RepositoryUrlKey))
             {
                 _buildReports.WriteError("The repository information is missing the repository URL.");
                 noErrors = false;
@@ -171,7 +172,7 @@ namespace Microsoft.Framework.PackageManager.SourceControl
 
         public override bool IsRepo(string folder)
         {
-            return ProcessUtilities.RunApp(RepoApp, "status", workingDirectory: folder);
+            return ProcessUtilities.RunApp(RepositoryApp, "status", workingDirectory: folder);
         }
     }
 }

@@ -35,13 +35,12 @@ namespace Microsoft.Framework.PackageManager.SourceControl
 
         public static bool RunApp(string executable, string arguments, string workingDirectory, out string stdOut, out string stdErr)
         {
-            StringBuilder output = new StringBuilder();
-            StringBuilder errors = new StringBuilder();
+            Process proc = null;
 
             try
             {
                 ProcessStartInfo startInfo = new ProcessStartInfo()
-                {                    
+                {
                     FileName = executable,
                     Arguments = arguments,
 
@@ -55,29 +54,16 @@ namespace Microsoft.Framework.PackageManager.SourceControl
                     CreateNoWindow = true
 #endif
                 };
-                
+
                 if (!string.IsNullOrEmpty(workingDirectory))
                 {
                     startInfo.WorkingDirectory = workingDirectory;
                 }
 
-                Process proc = new Process();
+                proc = new Process();
                 proc.StartInfo = startInfo;
                 proc.Start();
 
-                proc.EnableRaisingEvents = true;
-
-                proc.OutputDataReceived += (sender, e) =>
-                {
-                    output.Append(e.Data);
-                };
-                proc.ErrorDataReceived += (sender, e) =>
-                {
-                    errors.Append(e.Data);
-                };
-
-                proc.BeginOutputReadLine();
-                proc.BeginErrorReadLine();
 
                 proc.WaitForExit();
 
@@ -85,13 +71,13 @@ namespace Microsoft.Framework.PackageManager.SourceControl
             }
             catch (Exception ex)
             {
-                errors.AppendLine(ex.ToString());
+                stdErr = ex.ToString();
                 return false;
             }
             finally
             {
-                stdOut = output.ToString();
-                stdErr = errors.ToString();
+                stdOut = proc?.StandardOutput.ReadToEnd();
+                stdErr = proc?.StandardError.ReadToEnd();
             }
         }
     }

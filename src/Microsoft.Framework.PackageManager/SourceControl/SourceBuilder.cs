@@ -48,7 +48,7 @@ namespace Microsoft.Framework.PackageManager.SourceControl
             if (!_project.Repository.TryGetValue(Constants.RepoTypeKey, out repositoryType) ||
                 string.IsNullOrEmpty(repositoryType))
             {
-                WriteError("The project file contains a repository section but the repository type is missing.");
+                WriteError("The project file contains a repository property but the repository type is missing.");
                 return false;
             }
 
@@ -77,7 +77,7 @@ namespace Microsoft.Framework.PackageManager.SourceControl
 
             if (!sourceControlProvider.IsRepo(projectFolder))
             {
-                WriteWarning($"The project is not under a repository.  The repository information will not be included in the package.");
+                WriteWarning("The project is not under a repository. The repository information will not be included in the package.");
                 return true;
             }
 
